@@ -4,13 +4,13 @@ using System.Collections.Generic;
 
 namespace Observer
 {
-    public class TemperatureSensor
+    public class TemperatureSensor: ITemperatureProvider
     {
-        private List<TemperatureReporter> observers = new List<TemperatureReporter>();
+        private List<IObserver> observers = new List<IObserver>();
 
         public Temperature Current { get; private set; }
 
-        public void Subscribe(TemperatureReporter observer)
+        public void Subscribe(IObserver observer)
         {
             if (! observers.Contains(observer))
             {
@@ -18,7 +18,7 @@ namespace Observer
             }
         }
 
-        public void Unsubscribe(TemperatureReporter observer)
+        public void Unsubscribe(IObserver observer)
         {
             if (observers.Contains(observer))
             {
@@ -42,10 +42,9 @@ namespace Observer
                     if (start || (Math.Abs(temp.Value - previous.Value) >= 0.1m ))
                     {
                         this.Current = new Temperature(temp.Value, DateTime.Now);
-                        foreach (var observer in observers)
-                        {
-                            observer.Update();
-                        }
+                        
+                        this.Notify();
+
                         previous = temp;
                         if (start)
                         {
@@ -53,6 +52,14 @@ namespace Observer
                         }
                     }
                 }
+            }
+        }
+
+        public void Notify()
+        {
+            foreach (var observer in this.observers)
+            {
+                observer.Update();
             }
         }
     }
